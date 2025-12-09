@@ -137,4 +137,4 @@ Route::get('/contact', function () {
 })->name('contact');
 
 // Route pour le formulaire de contact (à créer si nécessaire)
-Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+//Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
