@@ -36,8 +36,6 @@ COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 # Rendre le script d'entrée exécutable
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-RUN chmod +x deploy.sh
-
 # Copier les fichiers de l'application
 COPY . .
 
