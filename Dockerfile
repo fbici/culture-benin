@@ -41,5 +41,34 @@ RUN chown -R www-data:www-data /var/www/html \
 # Installer les dépendances PHP (en production)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
+# Installer les dépendances Node.js
+RUN npm install --production --no-audit --no-fund
+
+# Construire les assets
+RUN npm run build
+
+# Créer un script de démarrage
+RUN echo '#!/bin/bash' > /start.sh && \
+    echo 'echo "🚀 Démarrage de l\'application..."' >> /start.sh && \
+    echo 'if [ ! -f .env ]; then' >> /start.sh && \
+    echo '    echo "📝 Création du fichier .env..."' >> /start.sh && \
+    echo '    cp .env.example .env' >> /start.sh && \
+    echo 'fi' >> /start.sh && \
+    echo 'if ! grep -q "APP_KEY=base64:" .env; then' >> /start.sh && \
+    echo '    echo "🔑 Génération de la clé d\'application..."' >> /start.sh && \
+    echo '    php artisan key:generate --force' >> /start.sh && \
+    echo 'fi' >> /start.sh && \
+    echo 'php artisan config:clear' >> /start.sh && \
+    echo 'php artisan cache:clear' >> /start.sh && \
+    echo 'php artisan view:clear' >> /start.sh && \
+    echo 'php artisan route:clear' >> /start.sh && \
+    echo 'php artisan storage:link || true' >> /start.sh && \
+    echo 'php artisan config:cache' >> /start.sh && \
+    echo 'php artisan route:cache' >> /start.sh && \
+    echo 'php artisan view:cache' >> /start.sh && \
+    echo 'echo "✅ Application prête!"' >> /start.sh && \
+    echo 'exec apache2-foreground' >> /start.sh && \
+    chmod +x /start.sh
+
 # Point d'entrée
-CMD ["/bin/bash", "-c", "./deploy.sh && apache2-foreground"]
+CMD ["/start.sh"]
