@@ -2,8 +2,8 @@ services:
   - type: web
     name: culture-benin
     env: docker
-    dockerfilePath: ./Dockerfile
     dockerContext: .
+    dockerfilePath: ./Dockerfile
     region: frankfurt
     plan: free
     envVars:
@@ -11,24 +11,7 @@ services:
         value: production
       - key: APP_DEBUG
         value: false
-      - key: LOG_CHANNEL
-        value: stderr
       - key: APP_URL
         sync: false
     healthCheckPath: /
     autoDeploy: true
-    buildFilter:
-      paths:
-        - "**/*"
-    disk:
-      name: storage
-      mountPath: /var/www/html/storage
-      sizeGB: 1
-
-  - type: pgsql
-    name: culture-benin-db
-    region: frankfurt
-    plan: free
-    ipAllowList: []
-    disk:
-      sizeGB: 1

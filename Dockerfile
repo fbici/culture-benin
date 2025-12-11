@@ -1,7 +1,7 @@
 # Étape 1 : image PHP avec Apache
 FROM php:8.2-apache
 
-# Installer les dépendances système et extensions PHP
+# Installer les dépendances système
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
@@ -12,19 +12,13 @@ RUN apt-get update && apt-get install -y \
     curl \
     nodejs \
     npm \
-    mariadb-client \
-    libzip-dev \
-    libicu-dev \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd intl zip
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
 # Installer Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Activer les modules Apache
-RUN a2enmod rewrite headers
-
-# Configurer Apache pour Laravel
-RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
+RUN a2enmod rewrite
 
 # Définir le répertoire de travail
 WORKDIR /var/www/html
@@ -32,22 +26,34 @@ WORKDIR /var/www/html
 # Copier les fichiers de l'application
 COPY . .
 
-# Rendre le script deploy.sh exécutable
-RUN chmod +x deploy.sh
-
 # Définir les permissions
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
+    && chmod -R 775 storage bootstrap/cache
 
-# Installer les dépendances PHP (en production)
+# Installer les dépendances PHP
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Installer les dépendances Node.js (INCLUANT les dépendances de développement pour Vite)
+# Installer les dépendances Node
 RUN npm install --no-audit --no-fund
 
-# Construire les assets (Vite a besoin des dépendances dev)
+# Build les assets
 RUN npm run build
 
+# Créer un script de démarrage
+RUN echo '#!/bin/bash' > /start.sh && \
+    echo 'if [ ! -f .env ]; then cp .env.example .env; fi' >> /start.sh && \
+    echo 'if ! grep -q "APP_KEY=base64:" .env; then php artisan key:generate --force; fi' >> /start.sh && \
+    echo 'php artisan config:clear' >> /start.sh && \
+    echo 'php artisan cache:clear' >> /start.sh && \
+    echo 'php artisan view:clear' >> /start.sh && \
+    echo 'php artisan route:clear' >> /start.sh && \
+    echo 'php artisan storage:link || true' >> /start.sh && \
+    echo 'php artisan config:cache' >> /start.sh && \
+    echo 'exec apache2-foreground' >> /start.sh && \
+    chmod +x /start.sh
+
+# Exposer le port 80
+EXPOSE 80
+
 # Point d'entrée
-CMD ["/bin/bash", "-c", "/var/www/html/deploy.sh && exec apache2-foreground"]
+CMD ["/start.sh"]
