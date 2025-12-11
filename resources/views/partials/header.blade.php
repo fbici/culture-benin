@@ -22,7 +22,7 @@
         <nav class="nav-main" id="mainNav">
             <ul class="nav-links">
                 <li><a href="{{ route('contenus.index') }}" class="nav-link {{ request()->routeIs('contenus.*') ? 'active' : '' }}">Contenus</a></li>
-                <li><a href="{{ route('medias.index') }}" class="nav-link {{ request()->routeIs('medias.*') ? 'active' : '' }}">Médias</a></li>
+                <li><a href="{{ route('media.index') }}" class="nav-link {{ request()->routeIs('medias.*') ? 'active' : '' }}">Médias</a></li>
                 <li><a href="{{ route('region.index') }}" class="nav-link ">Régions</a></li>
                 <li><a href="{{ route('langue.index') }}" class="nav-link">Langues</a></li>
                 <li><a href="{{ route('contact') }}" class="nav-link">Contact</a></li>

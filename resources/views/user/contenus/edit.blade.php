@@ -441,12 +441,7 @@
                                                 <a href="{{ Storage::url($media->chemin) }}" target="_blank" class="btn btn-sm btn-outline-primary" title="Voir">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
-                                                <a href="{{ route('user.medias.delete', $media->id_media) }}" 
-                                                   class="btn btn-sm btn-outline-danger" 
-                                                   title="Supprimer"
-                                                   onclick="return confirm('Voulez-vous vraiment supprimer ce média ?')">
-                                                    <i class="bi bi-trash"></i>
-                                                </a>
+                                                
                                             </div>
                                         </div>
                                         @endforeach

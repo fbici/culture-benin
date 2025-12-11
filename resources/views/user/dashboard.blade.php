@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 
-@section('title', 'Culture Benin - Accueil')
+@section('title', 'Espace Membre - Culture Benin')
 
 @section('content')
 <div class="dashboard-container">

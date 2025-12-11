@@ -90,7 +90,7 @@
                 ses langues locales, ses arts vivants et son héritage historique unique.
                 Une immersion totale dans l'âme de la nation.
             </p>
-            <a href="#contenus" class="btn-hero">
+            <a href="{{ route('contenus.index') }}" class="btn-hero">
                 <i class="bi bi-compass me-2"></i>Commencer l'Exploration
             </a>
         </div>
@@ -290,7 +290,7 @@
                 <p class="section-subtitle-dark">
                     Explorez notre dernière collection d'images et vidéos culturelles
                 </p>
-                <a href="{{ route('medias.index') }}" class="section-view-all">
+                <a href="{{ route('media.index') }}" class="section-view-all">
                     Voir tous les médias <i class="bi bi-arrow-right ms-2"></i>
                 </a>
             </div>
@@ -364,7 +364,7 @@
                     <!-- Contenu -->
                     <div class="media-content-premium">
                         <h4 class="media-title">
-                            <a href="{{ route('medias.show', $media->id_media) }}">
+                            <a href="{{ route('media.show', $media->id_media) }}">
                                 {{ Str::limit($media->description, 40) }}
                             </a>
                         </h4>
@@ -396,7 +396,7 @@
                                 <i class="bi bi-coin"></i>
                                 <span></span>
                             </div>
-                            <a href="{{ route('medias.show', $media->id_media) }}" class="media-btn">
+                            <a href="{{ route('media.show', $media->id_media) }}" class="media-btn">
                                 <i class="bi bi-eye me-2"></i>
                                 Voir
                             </a>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $media->description . ' - Culture Benin')
+@section('title', $media->titre . ' - Culture Benin')
 
 @section('content')
 <div class="media-detail-premium">
@@ -8,7 +8,7 @@
     <div class="media-navigation-premium mb-5">
         <div class="container">
             <div class="navigation-inner">
-                <a href="{{ route('medias.index') }}" class="nav-back-btn">
+                <a href="{{ route('media.index') }}" class="nav-back-btn">
                     <i class="bi bi-arrow-left me-2"></i>
                     Retour à la galerie
                 </a>
@@ -20,7 +20,7 @@
                     <i class="bi bi-chevron-right path-divider"></i>
                     <span class="path-current">
                         <i class="bi bi-file-earmark-fill me-1"></i>
-                        {{ Str::limit($media->description, 25) }}
+                        {{ Str::limit($media->titre, 25) }}
                     </span>
                 </div>
             </div>
@@ -51,19 +51,23 @@
                             <i class="bi bi-tag-fill me-2"></i>
                             {{ $mediaType }}
                         </span>
+                        @if($media->is_premium)
                         <span class="premium-badge-premium">
                             <i class="bi bi-star-fill me-2"></i>
                             Premium
                         </span>
+                        @endif
+                        @if($media->downloads > 100)
                         <span class="trending-badge-premium">
                             <i class="bi bi-fire me-2"></i>
                             Tendance
                         </span>
+                        @endif
                     </div>
                     
                     <h1 class="media-title-premium">
-                        {{ $media->description }}
-                        <div class="title-underline"></div>
+                        {{ $media->titre }}
+                        <div class="title-underline" style="background: linear-gradient(90deg, {{ $typeColor }}, transparent);"></div>
                     </h1>
                     
                     <!-- Métadonnées Premium -->
@@ -90,12 +94,13 @@
                                 <div class="metadata-value">
                                     <span class="download-count">{{ $media->downloads ?? 0 }}</span>
                                     <small class="download-trend text-success">
-                                        <i class="bi bi-arrow-up-right"></i> +15%
+                                        <i class="bi bi-arrow-up-right"></i> +{{ min(100, $media->downloads) }}%
                                     </small>
                                 </div>
                             </div>
                         </div>
                         
+                        @if($media->taille_fichier)
                         <div class="metadata-card-premium">
                             <div class="metadata-icon" style="background: {{ $typeBg }}; color: {{ $typeColor }};">
                                 <i class="bi bi-hdd-fill"></i>
@@ -103,16 +108,41 @@
                             <div class="metadata-content">
                                 <div class="metadata-label">Taille</div>
                                 <div class="metadata-value">
-                                    @php
-                                        $filePath = storage_path('app/public/' . $media->Chemin);
-                                        $fileSize = file_exists($filePath) ? filesize($filePath) : 0;
-                                        $fileSizeMB = round($fileSize / 1024 / 1024, 2);
-                                    @endphp
-                                    {{ $fileSizeMB }} MB
+                                    {{ $media->taille_formatee }}
                                 </div>
                             </div>
                         </div>
+                        @endif
                         
+                        @if($media->resolution)
+                        <div class="metadata-card-premium">
+                            <div class="metadata-icon" style="background: {{ $typeBg }}; color: {{ $typeColor }};">
+                                <i class="bi bi-aspect-ratio-fill"></i>
+                            </div>
+                            <div class="metadata-content">
+                                <div class="metadata-label">Résolution</div>
+                                <div class="metadata-value">
+                                    {{ $media->resolution }}
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                        
+                        @if($media->duree_formatee && $media->duree_formatee != 'N/A')
+                        <div class="metadata-card-premium">
+                            <div class="metadata-icon" style="background: {{ $typeBg }}; color: {{ $typeColor }};">
+                                <i class="bi bi-clock-fill"></i>
+                            </div>
+                            <div class="metadata-content">
+                                <div class="metadata-label">Durée</div>
+                                <div class="metadata-value">
+                                    {{ $media->duree_formatee }}
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                        
+                        @if($media->extension)
                         <div class="metadata-card-premium">
                             <div class="metadata-icon" style="background: {{ $typeBg }}; color: {{ $typeColor }};">
                                 @php
@@ -130,44 +160,119 @@
                             <div class="metadata-content">
                                 <div class="metadata-label">Format</div>
                                 <div class="metadata-value">
-                                    @php
-                                        $extension = pathinfo($media->Chemin, PATHINFO_EXTENSION);
-                                        echo strtoupper($extension ?: $mediaType);
-                                    @endphp
+                                    {{ strtoupper($media->extension) }}
                                 </div>
                             </div>
                         </div>
+                        @endif
                     </div>
+                    
+                    <!-- Description -->
+                    @if($media->description)
+                    <div class="media-description-detailed mt-4">
+                        <h4 class="description-title">
+                            <i class="bi bi-card-text me-2"></i>
+                            Description
+                        </h4>
+                        <div class="description-content">
+                            {!! nl2br(e($media->description)) !!}
+                        </div>
+                    </div>
+                    @endif
+                    
+                    <!-- Tags -->
+                    @if($media->tags && count($media->tags) > 0)
+                    <div class="media-tags-detailed mt-4">
+                        <h4 class="tags-title">
+                            <i class="bi bi-tags me-2"></i>
+                            Mots-clés
+                        </h4>
+                        <div class="tags-container">
+                            @foreach($media->tags as $tag)
+                                <span class="tag-detailed" style="background: {{ $typeBg }}; color: {{ $typeColor }};">
+                                    {{ trim($tag) }}
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+                    
+                    <!-- Copyright & Auteur -->
+                    @if($media->copyright || $media->auteur_original)
+                    <div class="copyright-info mt-4">
+                        <h4 class="copyright-title">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Informations légales
+                        </h4>
+                        <div class="copyright-content">
+                            @if($media->auteur_original)
+                            <div class="copyright-item">
+                                <i class="bi bi-person-fill me-2"></i>
+                                <strong>Auteur original :</strong> {{ $media->auteur_original }}
+                            </div>
+                            @endif
+                            @if($media->copyright)
+                            <div class="copyright-item">
+                                <i class="bi bi-c-circle-fill me-2"></i>
+                                <strong>Copyright :</strong> {{ $media->copyright }}
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
                 </div>
 
                 <!-- Aperçu Premium -->
                 <div class="preview-section-premium mb-5">
                     <div class="section-header-premium">
                         <div class="section-title">
-                            <i class="bi bi-eye-fill me-2"></i>
+                            @php
+                                $previewIcons = [
+                                    'Image' => 'bi-image-fill',
+                                    'Vidéo' => 'bi-play-btn-fill',
+                                    'Audio' => 'bi-music-note-beamed',
+                                    'PDF' => 'bi-file-earmark-pdf-fill',
+                                    'Document' => 'bi-file-earmark-text-fill'
+                                ];
+                                $previewIcon = $previewIcons[$mediaType] ?? 'bi-file-earmark-fill';
+                            @endphp
+                            <i class="bi {{ $previewIcon }} me-2"></i>
                             <h3>Prévisualisation</h3>
                         </div>
+                        @if(!$media->is_premium)
                         <div class="section-badge-free">
                             <i class="bi bi-unlock-fill me-1"></i>
-                            Gratuit
+                            Accès gratuit
                         </div>
+                        @endif
                     </div>
                     
                     <div class="preview-container-premium">
-                        @if($media->typeMedia->nom == 'Image')
-                            @if(Storage::exists($media->Chemin))
+                            @if($mediaType == 'Image' && $media->Chemin)
+                            @php
+                                $imageUrl = asset('storage/' . $media->Chemin);
+                                // Vérifier si le fichier existe
+                                $storagePath = 'public/' . $media->Chemin;
+                                $fileExists = Storage::exists($storagePath);
+                            @endphp
+                            @if($fileExists)
                             <div class="image-preview-wrapper">
-                                <img src="{{ Storage::url($media->Chemin) }}" 
-                                    alt="{{ $media->description }}"
+                                <img src="{{ $imageUrl }}" 
+                                    alt="{{ $media->titre }}"
                                     class="media-preview-image"
-                                    loading="lazy">
+                                    loading="lazy"
+                                    onerror="this.onerror=null; this.src='/images/placeholder-image.png'; this.alt='Image non disponible';">
                                 <div class="image-overlay-premium">
                                     <button class="overlay-btn-fullscreen" onclick="openFullscreen()">
                                         <i class="bi bi-arrows-fullscreen"></i>
                                     </button>
                                     <div class="image-info">
-                                        <span class="resolution-badge">HD</span>
-                                        <span class="size-badge">{{ $fileSizeMB }} MB</span>
+                                        @if($media->resolution)
+                                        <span class="resolution-badge">{{ $media->resolution }}</span>
+                                        @endif
+                                        @if($media->taille_formatee)
+                                        <span class="size-badge">{{ $media->taille_formatee }}</span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -180,7 +285,7 @@
                                 <p class="text-muted">L'image n'a pas pu être chargée</p>
                             </div>
                             @endif
-                        @elseif($media->typeMedia->nom == 'Vidéo')
+                        @elseif($media->est_video)
                             <div class="video-preview-premium">
                                 <div class="video-placeholder">
                                     <div class="placeholder-icon" style="color: {{ $typeColor }};">
@@ -188,19 +293,23 @@
                                     </div>
                                     <h4>Contenu vidéo</h4>
                                     <p class="text-muted">Téléchargez pour visualiser la vidéo complète</p>
+                                    @if($media->duree_formatee && $media->duree_formatee != 'N/A')
                                     <div class="video-stats">
                                         <span class="stat-item">
-                                            <i class="bi bi-play-circle"></i>
-                                            Vidéo premium
-                                        </span>
-                                        <span class="stat-item">
                                             <i class="bi bi-clock"></i>
-                                            5:30 min
+                                            {{ $media->duree_formatee }}
                                         </span>
+                                        @if($media->taille_formatee)
+                                        <span class="stat-item">
+                                            <i class="bi bi-hdd"></i>
+                                            {{ $media->taille_formatee }}
+                                        </span>
+                                        @endif
                                     </div>
+                                    @endif
                                 </div>
                             </div>
-                        @elseif($media->typeMedia->nom == 'Audio')
+                        @elseif($media->est_audio)
                             <div class="audio-preview-premium">
                                 <div class="audio-player-simulated">
                                     <div class="player-header">
@@ -209,8 +318,8 @@
                                                 <i class="bi bi-music-note-beamed"></i>
                                             </div>
                                             <div class="track-details">
-                                                <h5>Audio Premium</h5>
-                                                <p>{{ $media->description }}</p>
+                                                <h5>{{ $media->titre }}</h5>
+                                                <p>{{ Str::limit($media->description, 50) }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -220,7 +329,11 @@
                                         </div>
                                         <div class="time-display">
                                             <span>0:00</span>
-                                            <span>3:45</span>
+                                            @if($media->duree_formatee && $media->duree_formatee != 'N/A')
+                                            <span>{{ $media->duree_formatee }}</span>
+                                            @else
+                                            <span>--:--</span>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -231,17 +344,21 @@
                                     <div class="placeholder-icon" style="color: {{ $typeColor }};">
                                         <i class="bi bi-file-earmark-text-fill"></i>
                                     </div>
-                                    <h4>Document protégé</h4>
+                                    <h4>Document {{ $media->extension ? strtoupper($media->extension) : '' }}</h4>
                                     <p class="text-muted">Téléchargez pour consulter le contenu complet</p>
                                     <div class="document-info">
+                                        @if($media->extension)
                                         <span class="info-item">
                                             <i class="bi bi-file-text"></i>
-                                            {{ strtoupper($extension ?? 'DOC') }}
+                                            {{ strtoupper($media->extension) }}
                                         </span>
+                                        @endif
+                                        @if($media->taille_formatee)
                                         <span class="info-item">
                                             <i class="bi bi-file-earmark"></i>
-                                            {{ $fileSizeMB }} MB
+                                            {{ $media->taille_formatee }}
                                         </span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -259,6 +376,13 @@
                     </div>
                     
                     <div class="download-content-premium">
+                        @php
+                            // Logique pour vérifier si l'utilisateur a accès au média
+                            $canDownload = !$media->is_premium || 
+                                         (auth()->check() && (auth()->user()->hasPurchasedMedia($media->id_media) || 
+                                                              auth()->user()->is_admin));
+                        @endphp
+                        
                         @if($canDownload)
                             <!-- Accès accordé -->
                             <div class="access-granted">
@@ -268,17 +392,18 @@
                                         <div class="access-glow"></div>
                                     </div>
                                     <h4>Accès accordé</h4>
-                                    <p>Vous avez acheté ce média premium</p>
+                                    <p>Vous avez accès à ce média</p>
                                 </div>
                                 
                                 <div class="download-actions-premium">
-                                    <a href="{{ route('media.download', $media->id_media) }}" 
+                                    <a href="{{ route('medias.download', $media->id_media) }}" 
                                        class="btn-download-premium">
                                         <i class="bi bi-download-fill me-2"></i>
                                         Télécharger maintenant
                                         <div class="btn-sparkle"></div>
                                     </a>
                                     
+                                    @if($media->is_premium && auth()->check() && auth()->user()->hasPurchasedMedia($media->id_media))
                                     <div class="access-features">
                                         <div class="feature-item">
                                             <i class="bi bi-check-circle-fill text-success"></i>
@@ -290,9 +415,10 @@
                                         </div>
                                         <div class="feature-item">
                                             <i class="bi bi-check-circle-fill text-success"></i>
-                                            <span>Support premium inclus</span>
+                                            <span>Support inclus</span>
                                         </div>
                                     </div>
+                                    @endif
                                 </div>
                             </div>
                         @else
@@ -310,17 +436,7 @@
                                 <div class="pricing-card-premium">
                                     <div class="pricing-header">
                                         <div class="price-display-premium">
-                                            @php
-                                                $mediaPrices = [
-                                                    'Vidéo' => 500,
-                                                    'Image' => 150,
-                                                    'Audio' => 100,
-                                                    'PDF' => 100,
-                                                    'Document' => 100
-                                                ];
-                                                $mediaPrice = $mediaPrices[$mediaType] ?? 500;
-                                            @endphp
-                                            <span class="price-amount">{{ $mediaPrice }}</span>
+                                            <span class="price-amount">{{ number_format($media->prix, 0, ',', ' ') }}</span>
                                             <span class="price-currency">FCFA</span>
                                         </div>
                                         <div class="price-badge">
@@ -346,21 +462,21 @@
                                             </li>
                                             <li>
                                                 <i class="bi bi-check-circle-fill text-success"></i>
-                                                <span>Support technique 24/7</span>
+                                                <span>Support technique</span>
                                             </li>
                                         </ul>
                                     </div>
                                     
                                     @auth
-                                        <button class="btn-pay-premium" id="payMediaButton" data-price="{{ $mediaPrice }}">
+                                        <button class="btn-pay-premium" id="payMediaButton" data-price="{{ $media->prix }}">
                                             <i class="bi bi-credit-card-fill me-2"></i>
-                                            Débloquer l'accès
+                                            Acheter maintenant
                                             <div class="btn-sparkle"></div>
                                         </button>
                                         
                                         <div class="security-premium">
                                             <i class="bi bi-shield-check"></i>
-                                            <span>Paiement 100% sécurisé via FEDAPAY</span>
+                                            <span>Paiement 100% sécurisé</span>
                                         </div>
                                     @else
                                         <div class="auth-required-premium">
@@ -395,7 +511,7 @@
                     <div class="card-header-premium">
                         <h4>
                             <i class="bi bi-person-badge-fill me-2"></i>
-                            Contributteur
+                            Contributeur
                         </h4>
                     </div>
                     <div class="author-card-premium">
@@ -424,7 +540,7 @@
                             </div>
                             <div class="stat-divider"></div>
                             <div class="stat-item-premium">
-                                <div class="stat-number">{{ rand(100, 5000) }}</div>
+                                <div class="stat-number">{{ $media->user->total_downloads ?? rand(100, 5000) }}</div>
                                 <div class="stat-label">Téléchargements</div>
                             </div>
                         </div>
@@ -461,12 +577,7 @@
                             <span>Favoris</span>
                         </button>
                         
-                        <button class="action-btn-premium report">
-                            <div class="action-icon">
-                                <i class="bi bi-flag-fill"></i>
-                            </div>
-                            <span>Signaler</span>
-                        </button>
+                       
                     </div>
                 </div>
                 
@@ -479,53 +590,53 @@
                         </h4>
                     </div>
                     <div class="tech-info-premium">
+                        @if($media->extension)
                         <div class="tech-item-premium">
                             <div class="tech-icon" style="background: {{ $typeBg }}; color: {{ $typeColor }};">
-                                <i class="bi bi-filetype-{{ strtolower($extension ?? 'txt') }}"></i>
+                                <i class="bi bi-filetype-{{ strtolower($media->extension) }}"></i>
                             </div>
                             <div class="tech-content">
                                 <div class="tech-label">Format</div>
-                                <div class="tech-value">{{ strtoupper($extension ?: $mediaType) }}</div>
+                                <div class="tech-value">{{ strtoupper($media->extension) }}</div>
                             </div>
                         </div>
+                        @endif
                         
+                        @if($media->resolution)
                         <div class="tech-item-premium">
                             <div class="tech-icon" style="background: {{ $typeBg }}; color: {{ $typeColor }};">
                                 <i class="bi bi-aspect-ratio"></i>
                             </div>
                             <div class="tech-content">
                                 <div class="tech-label">Résolution</div>
-                                <div class="tech-value">
-                                    @if($mediaType == 'Image')
-                                        1920×1080 (HD)
-                                    @elseif($mediaType == 'Vidéo')
-                                        1080p Full HD
-                                    @else
-                                        Standard
-                                    @endif
-                                </div>
+                                <div class="tech-value">{{ $media->resolution }}</div>
                             </div>
                         </div>
+                        @endif
                         
+                        @if($media->taille_fichier)
                         <div class="tech-item-premium">
                             <div class="tech-icon" style="background: {{ $typeBg }}; color: {{ $typeColor }};">
-                                <i class="bi bi-cpu"></i>
+                                <i class="bi bi-hdd"></i>
                             </div>
                             <div class="tech-content">
-                                <div class="tech-label">Compatibilité</div>
-                                <div class="tech-value">Tous appareils</div>
+                                <div class="tech-label">Taille</div>
+                                <div class="tech-value">{{ $media->taille_formatee }}</div>
                             </div>
                         </div>
+                        @endif
                         
+                        @if($media->mime_type)
                         <div class="tech-item-premium">
                             <div class="tech-icon" style="background: {{ $typeBg }}; color: {{ $typeColor }};">
-                                <i class="bi bi-shield-check"></i>
+                                <i class="bi bi-file-earmark"></i>
                             </div>
                             <div class="tech-content">
-                                <div class="tech-label">Sécurité</div>
-                                <div class="tech-value">DRM protégé</div>
+                                <div class="tech-label">Type MIME</div>
+                                <div class="tech-value">{{ $media->mime_type }}</div>
                             </div>
                         </div>
+                        @endif
                     </div>
                 </div>
                 
@@ -547,9 +658,9 @@
                         @endphp
                         <div class="similar-item-premium">
                             <div class="similar-thumbnail-premium">
-                                @if($similarType == 'Image' && Storage::exists($similar->Chemin))
+                                @if($similarType == 'Image' && Storage::exists('public/' . $similar->Chemin))
                                 <img src="{{ Storage::url($similar->Chemin) }}" 
-                                     alt="{{ $similar->description }}"
+                                     alt="{{ $similar->titre }}"
                                      class="similar-img">
                                 @else
                                 <div class="similar-placeholder" style="background: {{ $similarTypeBg }}; color: {{ $similarTypeColor }};">
@@ -562,18 +673,19 @@
                             </div>
                             <div class="similar-content-premium">
                                 <h6 class="similar-title">
-                                    <a href="{{ route('medias.show', $similar->id_media) }}">
-                                        {{ Str::limit($similar->description, 40) }}
+                                    <a href="{{ route('media.show', $similar->id_media) }}">
+                                        {{ Str::limit($similar->titre, 40) }}
                                     </a>
                                 </h6>
                                 <div class="similar-meta">
                                     <span class="similar-type" style="color: {{ $similarTypeColor }};">{{ $similarType }}</span>
+                                    @if($similar->is_premium && $similar->prix)
                                     <span class="similar-price">
-                                        @php
-                                            $similarPrice = $mediaPrices[$similarType] ?? 500;
-                                        @endphp
-                                        <i class="bi bi-coin"></i> {{ $similarPrice }} FCFA
+                                        <i class="bi bi-coin"></i> {{ number_format($similar->prix, 0, ',', ' ') }} FCFA
                                     </span>
+                                    @else
+                                    <span class="similar-free">Gratuit</span>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -591,13 +703,13 @@
     <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ $media->description }}</h5>
+                <h5 class="modal-title">{{ $media->titre }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                @if($media->typeMedia->nom == 'Image' && Storage::exists($media->Chemin))
+                @if($media->est_image && Storage::exists('public/' . $media->Chemin))
                 <img src="{{ Storage::url($media->Chemin) }}" 
-                    alt="{{ $media->description }}"
+                    alt="{{ $media->titre }}"
                     class="img-fluid"
                     style="max-height: 85vh; width: auto; display: block; margin: 0 auto;">
                 @endif
@@ -1836,6 +1948,122 @@
             flex-direction: column;
             gap: 0.5rem;
         }
+    }
+
+    /* Description détaillée */
+    .media-description-detailed {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .description-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #495057;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .description-content {
+        color: #6c757d;
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+    
+    /* Tags détaillés */
+    .media-tags-detailed {
+        margin-top: 1.5rem;
+    }
+    
+    .tags-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #495057;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .tag-detailed {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    /* Copyright */
+    .copyright-info {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .copyright-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #495057;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .copyright-content {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .copyright-item {
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .copyright-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Médias similaires */
+    .similar-free {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #198754;
+        background: rgba(25, 135, 84, 0.1);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+    }
+    
+    /* Métadonnées grid améliorée */
+    .metadata-grid-premium {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+    
+    /* Section premium badge */
+    .section-badge-free {
+        background: white;
+        color: #10b981;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    /* Bouton modifier */
+    .action-btn-premium.edit .action-icon {
+        background: linear-gradient(135deg, #0d6efd, #6ea8fe);
     }
 </style>
 

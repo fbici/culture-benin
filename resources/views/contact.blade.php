@@ -462,7 +462,7 @@
                         <p>
                             Siège social<br>
                             Cotonou, Bénin<br>
-                            BP 480 Cotonou
+                            
                         </p>
                     </div>
                 </div>
@@ -474,7 +474,7 @@
                     <div class="contact-details">
                         <h3>Téléphone</h3>
                         <p>
-                            +229 XX XX XX XX<br>
+                            +229 40 63 10 61<br>
                             Lundi - Vendredi: 8h - 18h<br>
                             Samedi: 9h - 13h
                         </p>
@@ -488,9 +488,8 @@
                     <div class="contact-details">
                         <h3>Email</h3>
                         <p>
-                            contact@culturebenin.bj<br>
-                            info@culturebenin.bj<br>
-                            partenariat@culturebenin.bj
+                            salaousouleyman@gmail.com<br>
+                            
                         </p>
                     </div>
                 </div>

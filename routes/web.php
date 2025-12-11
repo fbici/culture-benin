@@ -21,8 +21,9 @@ Route::get('/', function () {
 // Avant la ligne require __DIR__.'/auth.php';
 Route::get('/contenus', [PublicContenuController::class, 'index'])->name('contenus.index');
 Route::get('/contenus/{id}', [PublicContenuController::class, 'show'])->name('contenus.show');
-Route::get('/medias', [PublicMediaController::class, 'index'])->name('medias.index');
-Route::get('/medias/{id}', [PublicMediaController::class, 'show'])->name('medias.show');
+Route::get('/medias', [PublicMediaController::class, 'index'])->name('media.index');
+Route::get('/medias/{id}', [PublicMediaController::class, 'show'])->name('media.show');
+Route::get('/{id}/download', [PublicMediaController::class, 'download'])->name('medias.download');
 
 // Route temporaire (retourne toujours un succès pour les tests)
 Route::post('/contenus/{id}/bookmark', function($id) {
@@ -105,6 +106,8 @@ Route::middleware(['auth'])
             Route::get('/create', [UserMediaController::class, 'create'])->name('create');
             Route::post('/', [UserMediaController::class, 'store'])->name('store');
             Route::get('/{id}', [UserMediaController::class, 'show'])->name('show');
+            Route::get('/{id}/edit', [UserMediaController::class, 'edit'])->name('edit'); // Ajoutez cette ligne
+            Route::put('/{id}', [UserMediaController::class, 'update'])->name('update');  // Ajoutez cette ligne
             Route::delete('/{id}', [UserMediaController::class, 'destroy'])->name('destroy');
         });
         
@@ -137,4 +140,4 @@ Route::get('/contact', function () {
 })->name('contact');
 
 // Route pour le formulaire de contact (à créer si nécessaire)
-//Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');

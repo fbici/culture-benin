@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: culture-benin
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    region: frankfurt
+    plan: free
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: APP_URL
+        value: https://culture-benin.onrender.com
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: mysql
+      - key: SESSION_DRIVER
+        value: file
+    healthCheckPath: /
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - "**/*"
+    disk:
+      name: storage
+      mountPath: /var/www/html/storage
+      sizeGB: 1
+
+  - type: pgsql
+    name: culture-benin-db
+    region: frankfurt
+    plan: free
+    ipAllowList: []
+    disk:
+      sizeGB: 1

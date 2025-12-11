@@ -29,7 +29,7 @@
             <ul class="footer-links">
                 <li><a href="{{ url('/') }}" class="footer-link">Accueil</a></li>
                 <li><a href="{{ route('contenus.index') }}" class="footer-link">Contenus Culturels</a></li>
-                <li><a href="{{ route('medias.index') }}" class="footer-link">Galerie Médias</a></li>
+                <li><a href="{{ route('media.index') }}" class="footer-link">Galerie Médias</a></li>
                 <li><a href="#regions" class="footer-link">Régions</a></li>
                 <li><a href="#langues" class="footer-link">Langues Locales</a></li>
             </ul>
@@ -48,9 +48,9 @@
 
         <div class="footer-contact">
             <h4 class="footer-heading">Contact</h4>
-            <div class="contact-item"><i class="bi bi-geo-alt"></i><span>Porto-Novo, Bénin</span></div>
-            <div class="contact-item"><i class="bi bi-envelope"></i><span>contact@culturebenin.bj</span></div>
-            <div class="contact-item"><i class="bi bi-phone"></i><span>+229 XX XX XX XX</span></div>
+            <div class="contact-item"><i class="bi bi-geo-alt"></i><span>Cotonou, Bénin</span></div>
+            <div class="contact-item"><i class="bi bi-envelope"></i><span>salaousouleyman@gmail.com</span></div>
+            <div class="contact-item"><i class="bi bi-phone"></i><span>+229 40 63 10 61</span></div>
             <div class="contact-item"><i class="bi bi-clock"></i><span>Lun - Ven: 8h - 18h</span></div>
         </div>
     </div>

@@ -747,6 +747,104 @@
                     </div>
                 </div>
 
+                <!-- Après le champ description -->
+
+                <!-- Premium & Prix -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-media">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" 
+                                    type="checkbox" 
+                                    id="is_premium" 
+                                    name="is_premium" 
+                                    value="1"
+                                    {{ old('is_premium') ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_premium">
+                                    <i class="bi bi-star-fill text-warning me-2"></i>
+                                    Contenu Premium
+                                </label>
+                            </div>
+                            <div class="form-text text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                Les contenus premium nécessitent un paiement pour être consultés
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group-media">
+                            <label for="prix" class="form-label-media">
+                                <i class="bi bi-currency-euro"></i>
+                                Prix (FCFA)
+                            </label>
+                            <input type="number" 
+                                class="form-control-media" 
+                                id="prix" 
+                                name="prix" 
+                                value="{{ old('prix') }}" 
+                                min="0" 
+                                step="50"
+                                placeholder="Ex: 500">
+                            <div class="form-text text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                Laissez vide pour un contenu gratuit
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auteur original & Copyright -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-media">
+                            <label for="auteur_original" class="form-label-media">
+                                <i class="bi bi-person-badge"></i>
+                                Auteur original
+                            </label>
+                            <input type="text" 
+                                class="form-control-media" 
+                                id="auteur_original" 
+                                name="auteur_original" 
+                                value="{{ old('auteur_original') }}" 
+                                placeholder="Nom de l'auteur/créateur original">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group-media">
+                            <label for="copyright" class="form-label-media">
+                                <i class="bi bi-c-circle"></i>
+                                Copyright
+                            </label>
+                            <input type="text" 
+                                class="form-control-media" 
+                                id="copyright" 
+                                name="copyright" 
+                                value="{{ old('copyright') }}" 
+                                placeholder="Ex: © 2024 Culture Benin">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tags -->
+                <div class="form-group-media">
+                    <label for="tags" class="form-label-media">
+                        <i class="bi bi-tags"></i>
+                        Tags/Mots-clés
+                    </label>
+                    <input type="text" 
+                        class="form-control-media" 
+                        id="tags" 
+                        name="tags" 
+                        value="{{ old('tags') }}" 
+                        placeholder="Séparés par des virgules (Ex: culture, tradition, art, benin)">
+                    <div class="form-text text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        Aide à la recherche et au référencement
+                    </div>
+                </div>
+
                 <!-- Form Actions -->
                 <div class="form-actions">
                     <button type="button" class="btn-cancel" onclick="window.location.href='{{ route('user.medias.index') }}'">
