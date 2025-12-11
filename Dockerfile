@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     mariadb-client \
     libzip-dev \
     libicu-dev \
+    default-mysql-client \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd intl zip
 
 # Installer Composer
@@ -29,13 +30,6 @@ RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available
 # Définir le répertoire de travail
 WORKDIR /var/www/html
 
-# Copier les fichiers de configuration
-COPY docker/000-default.conf /etc/apache2/sites-available/000-default.conf
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-
-# Rendre le script d'entrée exécutable
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
 # Copier les fichiers de l'application
 COPY . .
 
@@ -48,7 +42,4 @@ RUN chown -R www-data:www-data /var/www/html \
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Point d'entrée
-ENTRYPOINT ["entrypoint.sh"]
-
-# Commande par défaut
-CMD ["apache2-foreground"]
+CMD ["/bin/bash", "-c", "./deploy.sh && apache2-foreground"]
