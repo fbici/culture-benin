@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     mariadb-client \
     libzip-dev \
     libicu-dev \
-    default-mysql-client \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd intl zip
 
 # Installer Composer
@@ -33,6 +32,9 @@ WORKDIR /var/www/html
 # Copier les fichiers de l'application
 COPY . .
 
+# Rendre le script deploy.sh exécutable
+RUN chmod +x deploy.sh
+
 # Définir les permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage \
@@ -41,34 +43,11 @@ RUN chown -R www-data:www-data /var/www/html \
 # Installer les dépendances PHP (en production)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Installer les dépendances Node.js
-RUN npm install --production --no-audit --no-fund
+# Installer les dépendances Node.js (INCLUANT les dépendances de développement pour Vite)
+RUN npm install --no-audit --no-fund
 
-# Construire les assets
+# Construire les assets (Vite a besoin des dépendances dev)
 RUN npm run build
 
-# Créer un script de démarrage
-RUN echo '#!/bin/bash' > /start.sh && \
-    echo 'echo "🚀 Démarrage de l\'application..."' >> /start.sh && \
-    echo 'if [ ! -f .env ]; then' >> /start.sh && \
-    echo '    echo "📝 Création du fichier .env..."' >> /start.sh && \
-    echo '    cp .env.example .env' >> /start.sh && \
-    echo 'fi' >> /start.sh && \
-    echo 'if ! grep -q "APP_KEY=base64:" .env; then' >> /start.sh && \
-    echo '    echo "🔑 Génération de la clé d\'application..."' >> /start.sh && \
-    echo '    php artisan key:generate --force' >> /start.sh && \
-    echo 'fi' >> /start.sh && \
-    echo 'php artisan config:clear' >> /start.sh && \
-    echo 'php artisan cache:clear' >> /start.sh && \
-    echo 'php artisan view:clear' >> /start.sh && \
-    echo 'php artisan route:clear' >> /start.sh && \
-    echo 'php artisan storage:link || true' >> /start.sh && \
-    echo 'php artisan config:cache' >> /start.sh && \
-    echo 'php artisan route:cache' >> /start.sh && \
-    echo 'php artisan view:cache' >> /start.sh && \
-    echo 'echo "✅ Application prête!"' >> /start.sh && \
-    echo 'exec apache2-foreground' >> /start.sh && \
-    chmod +x /start.sh
-
 # Point d'entrée
-CMD ["/start.sh"]
+CMD ["/bin/bash", "-c", "/var/www/html/deploy.sh && exec apache2-foreground"]
