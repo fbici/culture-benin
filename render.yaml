@@ -16,9 +16,9 @@ services:
       - key: APP_KEY
         sync: false  # Set this to your actual key in Render dashboard
       - key: APP_URL
-        value: https://culturebenin-op79.onrender.com
+        value: https://culturebenin-wu6j.onrender.com
       - key: DB_CONNECTION
-        value: sqlite  # Or configure your database
+        value: mysql  # Or configure your database
     healthCheckPath: /
     autoDeploy: true
     buildFilter:
