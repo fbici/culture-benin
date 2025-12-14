@@ -1,0 +1,68 @@
+#!/bin/bash
+
+echo "🚀 Démarrage du déploiement Laravel..."
+
+# Attendre que la base de données soit prête (si nécessaire)
+# echo "⏳ Attente de la base de données..."
+# while ! nc -z $DB_HOST $DB_PORT; do
+#   sleep 0.5
+# done
+# echo "✅ Base de données disponible"
+
+# Créer le fichier .env à partir des variables d'environnement
+if [ ! -f .env ]; then
+    echo "📝 Création du fichier .env..."
+    cp .env.example .env
+fi
+
+# Générer la clé d'application si elle n'existe pas
+if [ -z "$(grep '^APP_KEY=' .env)" ] || [ "$(grep '^APP_KEY=' .env | cut -d= -f2)" = "" ]; then
+    echo "🔑 Génération de la clé d'application..."
+    php artisan key:generate --force
+fi
+
+# Mettre à jour les variables d'environnement dans .env
+echo "⚙️ Configuration de l'environnement..."
+sed -i "s/^APP_ENV=.*/APP_ENV=${APP_ENV:-production}/" .env
+sed -i "s/^APP_DEBUG=.*/APP_DEBUG=${APP_DEBUG:-false}/" .env
+sed -i "s/^APP_URL=.*/APP_URL=${APP_URL:-http:\/\/localhost}/" .env
+
+sed -i "s/^DB_CONNECTION=.*/DB_CONNECTION=${DB_CONNECTION:-mysql}/" .env
+sed -i "s/^DB_HOST=.*/DB_HOST=${DB_HOST:-127.0.0.1}/" .env
+sed -i "s/^DB_PORT=.*/DB_PORT=${DB_PORT:-3306}/" .env
+sed -i "s/^DB_DATABASE=.*/DB_DATABASE=${DB_DATABASE:-laravel}/" .env
+sed -i "s/^DB_USERNAME=.*/DB_USERNAME=${DB_USERNAME:-root}/" .env
+sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=${DB_PASSWORD:-}/" .env
+
+# Nettoyer le cache
+echo "🧹 Nettoyage du cache..."
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+php artisan route:clear
+
+# Optimiser l'application (production seulement)
+if [ "${APP_ENV:-production}" = "production" ]; then
+    echo "⚡ Optimisation pour la production..."
+    php artisan config:cache
+    php artisan view:cache
+    php artisan event:cache
+fi
+
+# Exécuter les migrations (optionnel - décommenter si besoin)
+# echo "🔄 Exécution des migrations..."
+# php artisan migrate --force
+
+# Installer les assets (si vous utilisez Laravel Mix/Vite)
+echo "📦 Installation des assets..."
+npm install --production
+npm run build
+
+# Définir les permissions
+echo "🔒 Configuration des permissions..."
+chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache public
+
+# Démarrer Apache en premier plan
+echo "🌍 Démarrage du serveur web..."
+exec apache2-foreground

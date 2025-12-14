@@ -1,51 +1,67 @@
-# Étape 1 : Base PHP
-FROM php:8.2-fpm
+FROM php:8.2-apache
 
-# Installer les dépendances système
+# For Render
+ENV PORT=10000
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+
+# 1. Install system dependencies + Node.js
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    nginx \
-    supervisor \
-    zip unzip \
     curl \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    zip \
+    unzip \
     libzip-dev \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+    gnupg \
+    ca-certificates \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Installer Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# 2. Configure Apache for Render port AND set correct document root
+RUN sed -i "s|Listen 80|Listen ${PORT}|g" /etc/apache2/ports.conf
+RUN sed -i "s|:80|:${PORT}|g" /etc/apache2/sites-available/*.conf
 
-# Installer Node.js (LTS)
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs
+# 3. Set Apache DocumentRoot to Laravel's public directory
+RUN sed -ri -e "s|/var/www/html|${APACHE_DOCUMENT_ROOT}|g" /etc/apache2/sites-available/*.conf
+RUN sed -ri -e "s|/var/www/|${APACHE_DOCUMENT_ROOT}|g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Copier le code Laravel
+# 4. Allow .htaccess overrides
+RUN echo "<Directory ${APACHE_DOCUMENT_ROOT}>\n\
+    AllowOverride All\n\
+    Require all granted\n\
+</Directory>" >> /etc/apache2/apache2.conf
+
+# 5. Install PHP extensions
+RUN docker-php-ext-install pdo pdo_mysql mbstring gd zip
+
+# 6. Enable Apache modules
+RUN a2enmod rewrite headers
+
+# 7. Copy application
+COPY . /var/www/html
 WORKDIR /var/www/html
-COPY . .
 
-# Installer les dépendances Laravel
-RUN composer install --optimize-autoloader --no-dev
+# 8. Install Composer dependencies
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Compiler les assets
-RUN npm install && npm run build
+# 9. Install npm dependencies if package.json exists
+RUN if [ -f "package.json" ]; then \
+    npm ci --only=production || echo "npm install failed, continuing..."; \
+    fi
 
-# Optimiser Laravel
-RUN php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+# 10. Set CORRECT permissions (critical fix!)
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache
 
-# Copier configuration nginx
-COPY docker/nginx.conf /etc/nginx/nginx.conf
+# 11. Create index.php if missing (fallback)
+RUN if [ ! -f /var/www/html/public/index.php ]; then \
+    echo "<?php echo 'Laravel is setting up...'; ?>" > /var/www/html/public/index.php; \
+    fi
 
-# Copier configuration supervisor
-COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Ajouter le certificat SSL pour MySQL Aiven
-COPY docker/ca.pem /etc/ssl/certs/ca.pem
-
-EXPOSE 80
-
-CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
-
+CMD ["apache2-foreground"]
