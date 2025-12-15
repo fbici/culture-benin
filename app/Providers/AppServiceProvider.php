@@ -27,5 +27,9 @@ class AppServiceProvider extends ServiceProvider
             return "<?php echo route('admin.' . $expression); ?>";
         });
         //
+
+        if (app()->environment('production')) {
+            URL::forceScheme('https');
+        }
     }
 }
