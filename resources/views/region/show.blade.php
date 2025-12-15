@@ -674,7 +674,7 @@
             </div>
             
             <div style="text-align: center; margin-top: 2rem;">
-                <a href="{{ route('medias.index') }}?region={{ $region->id_region }}" class="btn-region btn-explore">
+                <a href="{{ route('media.index') }}?region={{ $region->id_region }}" class="btn-region btn-explore">
                     <i class="bi bi-collection"></i> Voir la galerie complète
                 </a>
             </div>
