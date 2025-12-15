@@ -20,6 +20,10 @@ chmod -R 775 storage bootstrap/cache || true
 
 # Only cache config if APP_ENV=production AND APP_KEY exists
 if [ "$APP_ENV" = "production" ] && [ -n "$APP_KEY" ]; then
+
+echo "📦 Découverte des packages..."
+php artisan package:discover --ansi
+
     echo "⚡ Optimizing Laravel for production..."
     php artisan config:cache
     php artisan route:cache
